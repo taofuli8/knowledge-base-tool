@@ -5,32 +5,70 @@ Updated: 2026-05-14
 
 ## Description
 
-一个基于 Python + SQLite 的知识库管理工具，提供 REST API 供 AI Agent 调用。支持三种内容类型入库（URL 链接、教程文案、GitHub 项目），具备全文搜索、标签分类、内容抓取辅助等功能。
+一个基于 Python + SQLite 的知识库管理工具，提供 REST API 供 AI Agent 调用，同时提供 Gradio Web 界面供用户直观浏览和管理知识库。支持三种内容类型入库（URL 链接、教程文案、GitHub 项目），具备全文搜索、标签分类、内容抓取辅助等功能。
 
 ## Architecture
 
 ```mermaid
 graph TD
-    A[用户] -->|提交内容| B[REST API 层]
-    C[AI Agent] -->|调用 API| B
-    B --> D[业务逻辑层]
-    D --> E[SQLite 数据库]
-    D --> F[内容抓取模块]
-    F --> G[网页抓取]
-    F --> H[GitHub API]
-    D --> I[全文搜索 FTS5]
-    I --> E
+    A[用户] -->|浏览和管理| B[Gradio Web UI]
+    C[AI Agent] -->|调用 API| D[REST API 层]
+    B --> D
+    D --> E[业务逻辑层]
+    E --> F[SQLite 数据库]
+    E --> G[内容抓取模块]
+    G --> H[网页抓取]
+    G --> I[GitHub API]
+    E --> J[全文搜索 FTS5]
+    J --> F
 ```
 
-系统采用三层架构：
+系统采用四层架构：
 
-1. **REST API 层**: 使用 FastAPI 框架提供 HTTP 接口
-2. **业务逻辑层**: 处理条目 CRUD、搜索、标签管理
-3. **数据层**: SQLite + FTS5 全文搜索引擎
+1. **Gradio Web UI**: 提供直观的可视化界面，支持浏览、搜索、创建和管理条目
+2. **REST API 层**: 使用 FastAPI 框架提供 HTTP 接口
+3. **业务逻辑层**: 处理条目 CRUD、搜索、标签管理
+4. **数据层**: SQLite + FTS5 全文搜索引擎
 
 ## Components and Interfaces
 
-### 1. FastAPI 应用
+### 1. Gradio Web UI
+
+提供用户友好的可视化界面，包含以下功能页面：
+
+**主页 - 知识库概览**
+- 显示知识库统计信息（总条目数、各类型数量、标签云）
+- 最近添加的条目列表（最近 10 条）
+- 快速搜索框
+
+**搜索与浏览页**
+- 关键词搜索框，支持实时搜索
+- 类型过滤器（全部/URL/教程/GitHub）
+- 标签过滤器（多选）
+- 结果列表以卡片形式展示，显示标题、简介、类型标签、创建时间
+- 点击卡片展开详情
+
+**创建条目页**
+- 选择内容类型（URL/教程文案/GitHub）
+- 根据类型显示不同表单：
+  - URL: 输入网址，自动抓取标题
+  - 教程: 输入标题和粘贴文案内容
+  - GitHub: 输入仓库地址，自动获取 README
+- 提交后显示创建结果
+
+**条目详情页**
+- 完整显示条目信息
+- 编辑标题、简介、标签
+- 查看原始内容
+- 删除条目
+
+**标签管理页**
+- 显示所有标签及对应条目数
+- 点击标签筛选相关条目
+
+Gradio 服务默认运行在端口 7860，与 FastAPI 服务共享同一进程或独立启动。
+
+### 2. FastAPI 应用
 
 启动 HTTP 服务，监听默认端口 8000，提供以下路由：
 
@@ -62,12 +100,12 @@ Entry:
   - updated_at: TIMESTAMP
 ```
 
-### 3. 内容抓取模块
+### 4. 内容抓取模块
 
 - **网页抓取**: 使用 `httpx` + `trafilatura` 提取网页正文
 - **GitHub 抓取**: 使用 GitHub REST API 获取仓库信息和 README
 
-### 4. 全文搜索模块
+### 5. 全文搜索模块
 
 使用 SQLite FTS5 虚拟表，对 `title`、`summary`、`raw_content`、`tags` 建立全文索引。
 
