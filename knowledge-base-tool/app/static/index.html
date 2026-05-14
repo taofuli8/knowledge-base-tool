@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; margin-bottom: 12px; }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; }
+        .stat-card { background: #f8f9fa; padding: 16px 24px; border-radius: 8px; text-align: center; min-width: 120px; }
+        .stat-card .num { font-size: 28px; font-weight: bold; color: #1a73e8; }
+        .stat-card .label { font-size: 14px; color: #666; margin-top: 4px; }
+        .search-bar { background: #fff; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .search-bar input[type="text"] { flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
+        .search-bar input[type="text"]:focus { border-color: #1a73e8; }
+        .search-bar select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: #fff; }
+        .search-bar button { padding: 10px 24px; background: #1a73e8; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
+        .search-bar button:hover { background: #1557b0; }
+        .tags-bar { background: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .tags-bar span { font-size: 14px; color: #666; font-weight: 500; }
+        .tag-btn { padding: 4px 12px; background: #e8f0fe; color: #1a73e8; border: none; border-radius: 16px; cursor: pointer; font-size: 13px; }
+        .tag-btn.active { background: #1a73e8; color: #fff; }
+        .entry-list { display: flex; flex-direction: column; gap: 12px; }
+        .entry-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: box-shadow 0.2s; }
+        .entry-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .entry-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .entry-title { font-size: 18px; font-weight: 600; color: #1a73e8; display: flex; align-items: center; gap: 8px; }
+        .entry-date { font-size: 13px; color: #999; white-space: nowrap; }
+        .entry-summary { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .entry-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .entry-tag { padding: 2px 10px; background: #f0f0f0; border-radius: 12px; font-size: 12px; color: #666; }
+        .entry-url { font-size: 12px; color: #999; margin-top: 8px; word-break: break-all; }
+        .type-badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .type-github { background: #f0f0f0; color: #333; }
+        .type-url { background: #e8f5e9; color: #2e7d32; }
+        .type-tutorial { background: #fff3e0; color: #ef6c00; }
+        .detail-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; overflow-y: auto; }
+        .detail-modal.show { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; }
+        .detail-content { background: #fff; border-radius: 12px; max-width: 800px; width: 100%; padding: 32px; position: relative; }
+        .detail-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .detail-title { font-size: 22px; font-weight: 600; margin-bottom: 16px; color: #1a73e8; }
+        .detail-meta { display: flex; gap: 16px; margin-bottom: 16px; font-size: 14px; color: #666; flex-wrap: wrap; }
+        .detail-summary { font-size: 15px; line-height: 1.8; color: #333; margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; }
+        .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .detail-tag { padding: 4px 14px; background: #e8f0fe; color: #1a73e8; border-radius: 16px; font-size: 13px; }
+        .detail-actions { display: flex; gap: 12px; margin-bottom: 20px; }
+        .detail-actions button { padding: 8px 20px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 14px; }
+        .detail-actions button.delete { color: #d32f2f; border-color: #ffcdd2; }
+        .detail-actions button.edit { color: #1a73e8; border-color: #bbdefb; }
+        .detail-raw { font-size: 13px; color: #888; line-height: 1.6; max-height: 300px; overflow-y: auto; white-space: pre-wrap; background: #fafafa; padding: 16px; border-radius: 8px; border: 1px solid #eee; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 20px; }
+        .pagination button { padding: 8px 16px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination span { font-size: 14px; color: #666; }
+        .loading { text-align: center; padding: 40px; color: #999; }
+        .edit-form { display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .edit-form.show { display: block; }
+        .edit-form input, .edit-form textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; font-size: 14px; }
+        .edit-form textarea { min-height: 100px; resize: vertical; }
+        .edit-form .btn-row { display: flex; gap: 12px; }
+        .edit-form .btn-row button { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
+        .edit-form .btn-row button.save { background: #1a73e8; color: #fff; }
+        .edit-form .btn-row button.cancel { background: #fff; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Knowledge Base</h1>
+            <div class="stats" id="stats"></div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search keywords...">
+            <select id="typeFilter">
+                <option value="">All Types</option>
+                <option value="github">GitHub</option>
+                <option value="url">URL</option>
+                <option value="tutorial">Tutorial</option>
+            </select>
+            <button onclick="doSearch()">Search</button>
+            <button onclick="loadEntries()" style="background:#666">Browse</button>
+        </div>
+        <div class="tags-bar" id="tagsBar"><span>Tags:</span></div>
+        <div class="entry-list" id="entryList"></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-content">
+            <button class="detail-close" onclick="closeDetail()">&times;</button>
+            <div class="detail-title" id="detailTitle"></div>
+            <div class="detail-meta" id="detailMeta"></div>
+            <div class="detail-summary" id="detailSummary"></div>
+            <div class="detail-tags" id="detailTags"></div>
+            <div class="detail-actions">
+                <button class="edit" onclick="toggleEdit()">Edit</button>
+                <button class="delete" onclick="deleteEntry()">Delete</button>
+                <button onclick="window.open(document.getElementById('detailUrl').textContent, '_blank')">Open Link</button>
+            </div>
+            <div class="edit-form" id="editForm">
+                <input type="text" id="editTitle" placeholder="Title">
+                <textarea id="editSummary" placeholder="Summary"></textarea>
+                <input type="text" id="editTags" placeholder="Tags (comma separated)">
+                <div class="btn-row">
+                    <button class="save" onclick="saveEdit()">Save</button>
+                    <button class="cancel" onclick="toggleEdit()">Cancel</button>
+                </div>
+            </div>
+            <h4 style="margin-bottom:8px;color:#666">Raw Content</h4>
+            <div class="detail-raw" id="detailRaw"></div>
+            <input type="hidden" id="detailUrl">
+            <input type="hidden" id="detailId">
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        let currentPage = 1;
+        let currentType = '';
+        let activeTags = [];
+        let allTags = [];
+
+        async function fetchStats() {
+            const r = await fetch(API + '/stats');
+            const d = await r.json();
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card"><div class="num">${d.total}</div><div class="label">Total</div></div>
+                <div class="stat-card"><div class="num">${d.github}</div><div class="label">GitHub</div></div>
+                <div class="stat-card"><div class="num">${d.url}</div><div class="label">URL</div></div>
+                <div class="stat-card"><div class="num">${d.tutorial}</div><div class="label">Tutorial</div></div>
+            `;
+        }
+
+        async function fetchTags() {
+            const r = await fetch(API + '/tags');
+            allTags = await r.json();
+            const bar = document.getElementById('tagsBar');
+            bar.innerHTML = '<span>Tags:</span>' + allTags.map(t =>
+                `<button class="tag-btn" onclick="toggleTag('${t.tag}')" id="tag-${t.tag}">${t.tag} (${t.count})</button>`
+            ).join('');
+        }
+
+        function toggleTag(tag) {
+            const idx = activeTags.indexOf(tag);
+            if (idx >= 0) activeTags.splice(idx, 1); else activeTags.push(tag);
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.toggle('active', activeTags.includes(btn.textContent.split(' (')[0]));
+            });
+            doSearch();
+        }
+
+        async function loadEntries(page) {
+            currentPage = page || 1;
+            currentType = document.getElementById('typeFilter').value;
+            const params = new URLSearchParams({ page: currentPage, page_size: 20 });
+            if (currentType) params.set('content_type', currentType);
+            const r = await fetch(API + '/entries?' + params);
+            const d = await r.json();
+            renderEntries(d.items);
+            renderPagination(d.total, d.page, d.page_size);
+        }
+
+        async function doSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) { loadEntries(1); return; }
+            currentPage = 1;
+            const params = new URLSearchParams({ q, page: 1, page_size: 20 });
+            if (currentType) params.set('content_type', currentType);
+            if (activeTags.length) params.set('tags', activeTags.join(','));
+            const r = await fetch(API + '/entries/search?' + params);
+            const d = await r.json();
+            renderEntries(d.items);
+            renderPagination(d.total, d.page, d.page_size);
+        }
+
+        function renderEntries(items) {
+            const el = document.getElementById('entryList');
+            if (!items.length) { el.innerHTML = '<div class="loading">No entries found</div>'; return; }
+            const icons = { github: 'GitHub', url: 'URL', tutorial: 'Tutorial' };
+            el.innerHTML = items.map(e => `
+                <div class="entry-card" onclick="showDetail(${e.id})">
+                    <div class="entry-header">
+                        <div class="entry-title">
+                            <span class="type-badge type-${e.content_type}">${icons[e.content_type] || e.content_type}</span>
+                            ${esc(e.title)}
+                        </div>
+                        <div class="entry-date">${(e.created_at || '').substring(0, 10)}</div>
+                    </div>
+                    <div class="entry-summary">${esc(e.summary || 'No summary yet').substring(0, 200)}${(e.summary || '').length > 200 ? '...' : ''}</div>
+                    <div class="entry-tags">${(e.tags || []).map(t => `<span class="entry-tag">${esc(t)}</span>`).join('')}</div>
+                    ${e.url ? `<div class="entry-url">${esc(e.url)}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderPagination(total, page, size) {
+            const pages = Math.ceil(total / size);
+            const el = document.getElementById('pagination');
+            if (pages <= 1) { el.innerHTML = ''; return; }
+            el.innerHTML = `
+                <button onclick="loadEntries(${page - 1})" ${page <= 1 ? 'disabled' : ''}>Prev</button>
+                <span>Page ${page} / ${pages} (${total} items)</span>
+                <button onclick="loadEntries(${page + 1})" ${page >= pages ? 'disabled' : ''}>Next</button>
+            `;
+        }
+
+        async function showDetail(id) {
+            const r = await fetch(API + '/entries/' + id);
+            const e = await r.json();
+            document.getElementById('detailId').value = e.id;
+            document.getElementById('detailUrl').value = e.url;
+            document.getElementById('detailTitle').textContent = e.title;
+            document.getElementById('detailSummary').textContent = e.summary || 'No summary yet';
+            document.getElementById('detailRaw').textContent = (e.raw_content || '').substring(0, 3000) + ((e.raw_content || '').length > 3000 ? '...\n\n[truncated]' : '');
+            document.getElementById('detailMeta').innerHTML = `
+                <span>Type: ${e.content_type}</span>
+                <span>Status: ${e.status}</span>
+                <span>Created: ${(e.created_at || '').substring(0, 10)}</span>
+                <span>Updated: ${(e.updated_at || '').substring(0, 10)}</span>
+            `;
+            document.getElementById('detailTags').innerHTML = (e.tags || []).map(t => `<span class="detail-tag">${esc(t)}</span>`).join('');
+            document.getElementById('editTitle').value = e.title;
+            document.getElementById('editSummary').value = e.summary || '';
+            document.getElementById('editTags').value = (e.tags || []).join(', ');
+            document.getElementById('editForm').classList.remove('show');
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeDetail() { document.getElementById('detailModal').classList.remove('show'); }
+
+        function toggleEdit() { document.getElementById('editForm').classList.toggle('show'); }
+
+        async function saveEdit() {
+            const id = document.getElementById('detailId').value;
+            const tags = document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(Boolean);
+            const r = await fetch(API + '/entries/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: document.getElementById('editTitle').value,
+                    summary: document.getElementById('editSummary').value,
+                    tags: tags
+                })
+            });
+            if (r.ok) { showDetail(id); loadEntries(currentPage); }
+        }
+
+        async function deleteEntry() {
+            if (!confirm('Delete this entry?')) return;
+            const id = document.getElementById('detailId').value;
+            await fetch(API + '/entries/' + id, { method: 'DELETE' });
+            closeDetail();
+            loadEntries(currentPage);
+            fetchStats();
+            fetchTags();
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+        fetchStats();
+        fetchTags();
+        loadEntries(1);
+    </script>
+</body>
+</html>

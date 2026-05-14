@@ -29,13 +29,13 @@ def create_entry(data: EntryCreate) -> dict:
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        tags = "[]"
+        tags = json.dumps(data.tags or [])
         cursor.execute(
             """
-            INSERT INTO entries (title, url, content_type, raw_content, tags, status)
-            VALUES (?, ?, ?, ?, ?, 'pending')
+            INSERT INTO entries (title, url, content_type, raw_content, summary, tags, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'pending')
             """,
-            (data.title or "", data.url or "", data.content_type, data.raw_content or "", tags),
+            (data.title or "", data.url or "", data.content_type, data.raw_content or "", data.summary or "", tags),
         )
         conn.commit()
         entry_id = cursor.lastrowid

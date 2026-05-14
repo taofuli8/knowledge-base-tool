@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 test_knowledge.db
+*.egg-info/
+.pytest_cache/
+.DS_Store

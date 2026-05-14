@@ -8,14 +8,14 @@ class EntryCreate(BaseModel):
     content_type: str
     raw_content: Optional[str] = ""
     title: Optional[str] = ""
+    summary: Optional[str] = ""
+    tags: Optional[List[str]] = []
 
     def model_post_init(self, __context):
         if self.content_type not in ("url", "tutorial", "github"):
             raise ValueError("content_type must be 'url', 'tutorial', or 'github'")
         if self.content_type == "url" and not self.url:
             raise ValueError("url is required for content_type 'url'")
-        if self.content_type == "tutorial" and not self.raw_content:
-            raise ValueError("raw_content is required for content_type 'tutorial'")
 
 
 class EntryUpdate(BaseModel):
