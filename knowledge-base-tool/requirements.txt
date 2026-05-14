@@ -1,0 +1,9 @@
+fastapi>=0.100.0
+uvicorn>=0.23.0
+gradio>=4.0.0
+httpx>=0.24.0
+trafilatura>=1.6.0
+lxml_html_clean>=0.1.0
+python-multipart>=0.0.6
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
